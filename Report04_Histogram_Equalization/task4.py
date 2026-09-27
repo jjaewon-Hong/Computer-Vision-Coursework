@@ -71,7 +71,7 @@ def equalize_on_y(bgr_img, equalize_func):
     # 평활화된 Y 와 원래의 Cr, Cb 를 다시 합쳐 YCrCb -> BGR 로 복원
     restored_bgr = cv.cvtColor(cv.merge([y_eq, cr, cb]), cv.COLOR_YCrCb2BGR)
 
-    return y_eq, restored_bgr, elapsed
+    return restored_bgr, elapsed
 
 # [결과 비교] [구현 1]과 [구현 2]의 PSNR 값이 동일한지 확인하고,
 #             time 모듈로 측정한 실행시간을 비교
@@ -85,10 +85,10 @@ def main():
     img = cv.imdecode(np.fromfile(imgfile, dtype=np.uint8), cv.IMREAD_COLOR)
 
     # [구현 1] OpenCV equalizeHist 함수 이용
-    y_opencv, restored_opencv, opencv_time = equalize_on_y(img, cv.equalizeHist)
+    restored_opencv, opencv_time = equalize_on_y(img, cv.equalizeHist)
 
     # [구현 2] 수식 직접 구현 함수 이용
-    y_manual, restored_manual, manual_time = equalize_on_y(img, equalize_hist_manual)
+    restored_manual, manual_time = equalize_on_y(img, equalize_hist_manual)
 
     # 원본 RGB 와 복원된 RGB 사이의 PSNR (두 구현의 값이 동일한지 확인)
     psnr_opencv = cv.PSNR(img, restored_opencv, 255)
@@ -99,11 +99,6 @@ def main():
     print(f'PSNR equalized by formula         : {psnr_manual:.4f}')
     print(f'opencv_time = {opencv_time:.4f}')
     print(f'manual_time = {manual_time:.4f}')
-
-    # 두 구현의 Y 결과가 화소 단위로 완전히 같은지 추가 확인
-    # (같은 수식을 사용하므로 same result 는 True, max difference 는 0 이 나와야 함)
-    print(f'same result : {np.array_equal(y_opencv, y_manual)}')
-    print(f'max difference : {int(np.max(cv.absdiff(y_opencv, y_manual)))}')
 
     # ---------- 결과 비교 디스플레이 ----------
     # Y 영상이 아니라, Y 정보만 Histogram Equalization 한 뒤 RGB 로 복원한 컬러 영상을 출력
